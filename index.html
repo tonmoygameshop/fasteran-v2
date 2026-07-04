@@ -374,6 +374,15 @@ setInterval(() => {
             ...Array(2).fill(20)
         ];
 
+<!-- Stylish Reward Popup -->
+    <div id="rewardPopup" class="reward-overlay">
+        <div class="reward-card">
+            <div class="reward-title">WINNER!</div>
+            <div class="reward-amount"><span id="popupRewardCoins">0</span> COINS</div>
+            <button class="btn-premium btn-collect" onclick="closeRewardPopup()" style="width: 100%;">COLLECT NOW</button>
+        </div>
+    </div>
+      
         window.loginUser = async function() {
             const uidInput = document.getElementById('uidInput').value.trim();
             if(!uidInput) return alert("Please enter a valid UID!");
