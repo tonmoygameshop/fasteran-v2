@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
-  <script src='//libtl.com/sdk.js' data-zone='11124019' data-sdk='show_11124019'></script>
+
+<script src='//libtl.com/sdk.js' data-zone='11124019' data-sdk='show_11124019'></script>
   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -173,7 +173,37 @@
             box-shadow: 0 1px 0 #0052b3;
         }
 
-/* --- Premium Reward Popup Style --- */
+        /* Popups / Modals */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .popup-card {
+            background: rgba(30, 25, 50, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .popup-card h2 {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Premium Reward Popup Style --- */
         .reward-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -274,6 +304,15 @@
         </div>
     </div>
 
+    <!-- Stylish Reward Popup -->
+    <div id="rewardPopup" class="reward-overlay">
+        <div class="reward-card">
+            <div class="reward-title">WINNER!</div>
+            <div class="reward-amount"><span id="popupRewardCoins">0</span> COINS</div>
+            <button class="btn-premium btn-collect" onclick="closeRewardPopup()" style="width: 100%;">COLLECT NOW</button>
+        </div>
+    </div>
+
     <!-- Main Game App Interface -->
     <div class="game-container">
         
@@ -300,7 +339,6 @@
 
         <!-- Egg Cracking Area -->
         <div class="game-zone" id="gameZone">
-            <!-- Eggs will be generated dynamically here -->
             <div id="gameStatusMessage" style="font-size: 20px; color: rgba(255,255,255,0.6); text-align: center; font-weight: bold; text-transform: uppercase;">Press START FREE to Play</div>
         </div>
 
@@ -338,51 +376,26 @@
         let userData = { coins: 0, eggsCracked: 0 };
         let isGameActive = false;
 
-// --- অটোমেটিক অ্যাড সিস্টেম (প্রতি ১০ সেকেন্ড পর পর) ---
-setInterval(() => {
-    // গেম চলাকালীন বা ইউজার যখন অ্যাপে একটিভ থাকবে, তখন এটি কাজ করবে
-    console.log("Loading Advertisement...");
-    
-    // আপনার দেওয়া অ্যাড শো করার ফাংশন
-    show_11124019('pop').then(() => {
-        // ইউজার সম্পূর্ণ অ্যাডটি দেখেছে অথবা ক্লোজ করেছে
-        console.log("Ad watched successfully or closed.");
-        
-        // উদাহরণ: অ্যাড দেখার জন্য ইউজারকে বোনাস ১টি কয়েন দিতে চাইলে নিচের কোডটি চালু করতে পারেন
-        /*
-        if (currentUID) {
-            userData.coins += 1;
-            updateUI();
-            // ডাটাবেজে আপডেট করার জন্য
-            const { getDatabase, ref, update } = window.FirebaseDB; // অথবা আপনার ইমপোর্ট করা ভেরিয়েবল
-            update(ref(db, `users/${currentUID}`), { coins: userData.coins });
-        }
-        */
-    }).catch(e => {
-        // অ্যাড লোড হতে কোনো সমস্যা হলে বা ইউজার কেটে দিলে এই অংশ কাজ করবে
-        console.error("Ad failed to load or error occurred: ", e);
-    });
+        // --- অটোমেটিক ১০ সেকেন্ড পর পর এড লোড করার টাইমার ---
+        setInterval(() => {
+            if (!currentUID) return; // ইউজার লগইন না করা পর্যন্ত এড আসবে না
+            
+            show_11124019('pop').then(() => {
+                console.log("Ad watched successfully or closed.");
+            }).catch(e => {
+                console.error("Ad error: ", e);
+            });
+        }, 10000);
 
-}, 10000); // ১০,০০০ মিলিসেকেন্ড = ১০ সেকেন্ড
-
-        // Reward Table Configuration (100 games cycle logic helper)
+        // Reward Table Configuration
         const rewardsPool = [
             ...Array(43).fill(10),
-            ...Array(30).fill(1),
+            ...Array(30).fill(15),
             ...Array(20).fill(5),
-            ...Array(5).fill(10),
+            ...Array(5).fill(30),
             ...Array(2).fill(20)
         ];
 
-<!-- Stylish Reward Popup -->
-    <div id="rewardPopup" class="reward-overlay">
-        <div class="reward-card">
-            <div class="reward-title">WINNER!</div>
-            <div class="reward-amount"><span id="popupRewardCoins">0</span> COINS</div>
-            <button class="btn-premium btn-collect" onclick="closeRewardPopup()" style="width: 100%;">COLLECT NOW</button>
-        </div>
-    </div>
-      
         window.loginUser = async function() {
             const uidInput = document.getElementById('uidInput').value.trim();
             if(!uidInput) return alert("Please enter a valid UID!");
@@ -419,18 +432,16 @@ setInterval(() => {
             const gameZone = document.getElementById('gameZone');
             gameZone.innerHTML = ""; 
 
-            // Logic to preset reward from Server-side calculation simulation
             const randomIndex = Math.floor(Math.random() * rewardsPool.length);
             const serverPreDeterminedReward = rewardsPool[randomIndex];
 
-            const totalEggs = Math.floor(Math.random() * 6) + 10; // 10 to 15 eggs
+            const totalEggs = Math.floor(Math.random() * 6) + 10; 
             const luckyEggIndex = Math.floor(Math.random() * totalEggs);
 
             for(let i=0; i<totalEggs; i++) {
                 const egg = document.createElement('div');
                 egg.className = 'egg-container';
                 
-                // Random position inside container
                 const posX = Math.floor(Math.random() * (gameZone.clientWidth - 80));
                 const posY = Math.floor(Math.random() * (gameZone.clientHeight - 80));
                 egg.style.left = posX + 'px';
@@ -442,17 +453,13 @@ setInterval(() => {
                 img.className = 'egg-img';
                 egg.appendChild(img);
 
-                // Click event
                 egg.onclick = function() {
                     if(!isGameActive) return;
-                    // Freeze action
                     isGameActive = false; 
                     
-                    // Trigger crack graphics and animations
                     img.src = "https://lh3.googleusercontent.com/d/1fHa504k6lDNZrArUEgYd_f61LduuZ_Rq=w600-h600";
                     egg.classList.add('claimed');
 
-                    // Calculate final award based on pre-calculated server rule
                     const finalReward = (i === luckyEggIndex) ? serverPreDeterminedReward : 0;
 
                     setTimeout(async () => {
@@ -465,13 +472,26 @@ setInterval(() => {
                         });
                         
                         updateUI();
-                        alert(`You found: ${finalReward} COINS!`);
+                        
+                        // পুরাতন alert() এর পরিবর্তে নতুন কাস্টম নোটিফিকেশন পপআপ কল করা হয়েছে
+                        showRewardPopup(finalReward);
+                        
                         gameZone.innerHTML = `<div style="font-size: 20px; color: #fff;">Got ${finalReward} Coins! Press Start to play again.</div>`;
                     }, 600);
                 };
 
                 gameZone.appendChild(egg);
             }
+        }
+
+        // --- কাস্টম পপআপ কন্ট্রোল ফাংশন ---
+        window.showRewardPopup = function(amount) {
+            document.getElementById('popupRewardCoins').innerText = amount;
+            document.getElementById('rewardPopup').classList.add('active');
+        }
+
+        window.closeRewardPopup = function() {
+            document.getElementById('rewardPopup').classList.remove('active');
         }
 
         window.requestCoinSell = async function() {
